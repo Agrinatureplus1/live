@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Agri Nature Plus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="images/icon.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #f4fff6, #eef8e8, #ffffff);
+      color: #333;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 1em;
+      text-align: center;
+      position: relative;
+    }
+    .lang-select {
+      position: absolute;
+      top: 0.3em;
+      right: 1em;
+      padding: 6px 10px;
+      font-size: 1em;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1em;
+      padding: 1em;
+    }
+    .product {
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+      padding: 1em;
+      width: 240px;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .product h4 {
+      color: #7e22ce;
+    }
+    .benefit {
+      font-size: 0.85em;
+      color: #555;
+      font-style: italic;
+    }
+    .cart, .client-info, .payment {
+      max-width: 500px;
+      margin: 1em auto;
+      background: white;
+      padding: 1em;
+      border-radius: 10px;
+      border: 2px solid #4CAF50;
+    }
+    .total {
+      text-align: center;
+      font-weight: bold;
+    }
+    button.ajouter-panier {
+      background-color: #28a745 !important;
+      color: white !important;
+      font-weight: bold;
+      border: none;
+      margin-top: 0.5em;
+      padding: 0.6em 1.2em;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    button.paiement-fedapay {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      margin-top: 0.5em;
+      padding: 0.6em 1.2em;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    button.paiement-pi {
+      background-color: #8e44ad !important;
+      color: white;
+      border: none;
+      margin-top: 0.5em;
+      padding: 0.6em 1.2em;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.8em;
+      padding: 1em;
+      color: #555;
+    }
+    img.product-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <select class="lang-select" onchange="changeLang(this.value)">
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="de">🇩🇪 Deutsch</option>
+    </select>
+    <h1 id="mainTitle">BIENVENUE SUR AGRI NATURE PLUS EN LIGNE</h1>
+  </header>
+
+  <section class="products" id="productList"></section>
+
+  <div style="text-align:center; margin-top: 1em;">
+    <button id="toggleCartBtn" onclick="toggleCart()" style="background-color: #4CAF50; color: white; border: none; padding: 0.5em 1em; border-radius: 8px; font-weight: bold;">
+      🛒 Voir le panier (<span id="cartCount">0</span>)
+    </button>
+  </div>
+
+  <section class="cart" id="cartSection" style="display:none;">
+    <h2>🛒 Panier</h2>
+    <ul id="cartItems" style="font-size: 0.9em;"></ul>
+    <div class="total">Total : <span id="totalPrice">0</span> FCFA | <span id="totalPi">0</span> Pi</div>
+  </section>
+
+  <section class="client-info">
+    <h3>🧍 Informations Client</h3>
+    <input type="text" id="clientName" placeholder="Nom complet">
+    <input type="text" id="clientPhone" placeholder="Téléphone WhatsApp">
+    <input type="text" id="clientCity" placeholder="Ville">
+  </section>
+
+  <section class="payment">
+    <h3>💳 Paiement</h3>
+    <button class="paiement-fedapay" onclick="payWithFedaPay()">Payer avec FedaPay</button>
+    <button class="paiement-pi" onclick="alert('Veuillez utiliser l\'adresse Pi ci-dessous dans votre wallet Pi Network.')">Payer avec Pi Network</button>
+    <p>Adresse :
+      <input id="piAddress" value="GA34QTXX7K6Q2GEHKLTSO46MD7D3APZWFB4M3N73W2ZD4TXHOSCS7T76" readonly onclick="this.select()">
+      <button class="paiement-pi" onclick="copyPiAddress()">Copier</button>
+    </p>
+    <p>Envoyez l'ID de transaction via <a href="https://wa.me/2290194999521" target="_blank">WhatsApp</a>.</p>
+  </section>
+
+  <footer>
+    📍 Quartier Kantaborifa, Natitingou – 📞 +229 0194999521 – ✉️ agrinatureplus.info@gmail.com
+  </footer>
+
+  <!-- Scripts à injecter dans la prochaine étape -->
+
+<script src="https://cdn.fedapay.com/checkout.js"></script>
+<script>
+const translations = {
+  fr: {
+    title: "BIENVENUE SUR AGRI NATURE PLUS EN LIGNE",
+    products: ["Chips de patates douces", "Chips de banane plantain", "Chips de taro", "Chips de soja", "Cacahouètes de soja", "Chips de pomme de terre"],
+    benefits: ["Riche en antioxydants", "Énergie naturelle", "Aide digestion", "Protéines végétales", "Nutritif et riche en fibres", "Énergie rapide"]
+  },
+  en: {
+    title: "WELCOME TO AGRI NATURE PLUS ONLINE",
+    products: ["Sweet Potato Chips", "Plantain Chips", "Taro Chips", "Soy Chips", "Soy Peanuts", "Potato Chips"],
+    benefits: ["Rich in antioxidants", "Natural energy", "Aids digestion", "Plant-based proteins", "Nutritious and high in fiber", "Fast energy"]
+  },
+  es: {
+    title: "BIENVENIDO A AGRI NATURE PLUS EN LÍNEA",
+    products: ["Chips de batata", "Chips de plátano", "Chips de taro", "Chips de soya", "Cacahuetes de soya", "Chips de papa"],
+    benefits: ["Rico en antioxidantes", "Energía natural", "Favorece la digestión", "Proteínas vegetales", "Nutritivo y rico en fibra", "Energía rápida"]
+  },
+  de: {
+    title: "WILLKOMMEN BEI AGRI NATURE PLUS ONLINE",
+    products: ["Süßkartoffelchips", "Kochbananenchips", "Taro-Chips", "Sojachips", "Soja-Erdnüsse", "Kartoffelchips"],
+    benefits: ["Reich an Antioxidantien", "Natürliche Energie", "Fördert die Verdauung", "Pflanzliche Proteine", "Nahrhaft und ballaststoffreich", "Schnelle Energie"]
+  }
+};
+
+const prices = [2000, 1000, 2500, 500, 1000, 2000];
+let currentLang = "fr";
+let cart = [];
+
+function renderProducts() {
+  const productList = document.getElementById("productList");
+  productList.innerHTML = "";
+  translations[currentLang].products.forEach((name, index) => {
+    const div = document.createElement("div");
+    div.className = "product";
+    let imgTag = "";
+    const nom = name.toLowerCase();
+    if (nom.includes("patates douces")) imgTag = '<img class="product-image" src="images/chips-patate-sac.jpg">';
+    else if (nom.includes("plantain")) imgTag = '<img class="product-image" src="images/chips-plantain.jpg">';
+    else if (nom.includes("taro")) imgTag = '<img class="product-image" src="images/chips-taro.jpg">';
+    else if (nom.includes("pomme de terre")) imgTag = '<img class="product-image" src="images/chips-bol.jpg">';
+    else if (nom.includes("soja")) imgTag = '<img class="product-image" src="images/produit-soja.jpg">';
+    div.innerHTML = `
+      ${imgTag}
+      <h4>${name}</h4>
+      <p>${prices[index]} FCFA | ${(prices[index] / 100000000).toFixed(8)} Pi</p>
+      <p class="benefit">${translations[currentLang].benefits[index]}</p>
+      <input type="number" id="qty-${index}" min="1" value="1" style="width: 60px">
+      <button class="ajouter-panier" onclick="addToCart(${index})"><i class="fas fa-shopping-cart"></i> Ajouter au panier</button>
+    `;
+    productList.appendChild(div);
+  });
+}
+
+function addToCart(index) {
+  const qty = parseInt(document.getElementById("qty-" + index).value);
+  for (let i = 0; i < qty; i++) cart.push(index);
+  renderCart(); updateCartCounter();
+}
+
+function renderCart() {
+  const cartItems = document.getElementById("cartItems");
+  cartItems.innerHTML = "";
+  let total = 0;
+  cart.forEach(index => {
+    total += prices[index];
+    const li = document.createElement("li");
+    li.textContent = translations[currentLang].products[index] + " - " + prices[index] + " FCFA";
+    cartItems.appendChild(li);
+  });
+  document.getElementById("totalPrice").textContent = total;
+  document.getElementById("totalPi").textContent = (total / 100000000).toFixed(8);
+}
+
+function changeLang(lang) {
+  currentLang = lang;
+  document.getElementById("mainTitle").innerText = translations[lang].title;
+  renderProducts();
+  renderCart();
+}
+
+function copyPiAddress() {
+  const address = document.getElementById("piAddress");
+  address.select();
+  document.execCommand("copy");
+  alert("Adresse Pi copiée !");
+}
+
+function payWithFedaPay() {
+  const amount = parseInt(document.getElementById("totalPrice").textContent);
+  const name = document.getElementById("clientName").value;
+  const phone = document.getElementById("clientPhone").value;
+  if (!name || !phone) {
+    alert("Veuillez remplir vos informations client.");
+    return;
+  }
+  const checkout = window.FedaPay.init({
+    public_key: "pk_live_GZ9XidrcooX9ci8v0PE3jPYk",
+    transaction: {
+      amount: amount,
+      description: "Commande Agri Nature Plus",
+      customer: { firstname: name, phone_number: phone }
+    }
+  });
+  checkout.open();
+  checkout.on('complete', function() {
+    alert("✅ Paiement effectué avec succès !");
+  });
+}
+
+function toggleCart() {
+  const cart = document.getElementById("cartSection");
+  cart.style.display = cart.style.display === "none" ? "block" : "none";
+}
+function updateCartCounter() {
+  document.getElementById("cartCount").textContent = cart.length;
+}
+
+window.onload = renderProducts;
+</script>
+
+</body>
+</html>
